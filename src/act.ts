@@ -527,6 +527,11 @@ export class Act {
                 detail: 'Output the job id within non-json logs instead of the entire name.'
             },
             {
+                label: Option.Matrix,
+                description: '',
+                detail: 'Specify which matrix configuration to include (e.g. --matrix java:13)'
+            },
+            {
                 label: Option.Network,
                 description: 'host',
                 detail: 'Sets a docker network name.'

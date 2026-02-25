@@ -1,4 +1,4 @@
-import { commands, env, ExtensionContext, TreeCheckboxChangeEvent, Uri, window, workspace } from 'vscode';
+import { commands, env, ExtensionContext, OutputChannel, TreeCheckboxChangeEvent, Uri, window, workspace } from 'vscode';
 import { Act } from './act';
 import { ConfigurationManager, Section } from './configurationManager';
 import { IssueHandler } from './issueHandler';
@@ -12,6 +12,7 @@ import WorkflowsTreeDataProvider from './views/workflows/workflowsTreeDataProvid
 import { WorkflowsManager } from './workflowsManager';
 
 export let act: Act;
+export let outputChannel: OutputChannel;
 export let componentsTreeDataProvider: ComponentsTreeDataProvider;
 export let workflowsTreeDataProvider: WorkflowsTreeDataProvider;
 export let historyTreeDataProvider: HistoryTreeDataProvider;
@@ -19,6 +20,8 @@ export let settingsTreeDataProvider: SettingsTreeDataProvider;
 
 export function activate(context: ExtensionContext) {
 	console.log('Congratulations, your extension "github-local-actions" is now active!');
+
+	outputChannel = window.createOutputChannel('GitHub Local Actions');
 
 	act = new Act(context);
 

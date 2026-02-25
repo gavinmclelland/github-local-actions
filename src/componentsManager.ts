@@ -35,6 +35,10 @@ export enum ExtensionStatus {
 export class ComponentsManager {
     static actVersionRegExp: RegExp = /act version (.+)/;
     static dockerVersionRegExp: RegExp = /Docker Engine Version:\s(.+)/;
+    static limaVersionRegExp: RegExp = /limactl version (.+)/;
+    static colimaVersionRegExp: RegExp = /colima version (.+)/;
+    static podmanVersionRegExp: RegExp = /podman version (.+)/;
+    static lumeVersionRegExp: RegExp = /lume version (.+)/;
 
     async getComponents(): Promise<Component<CliStatus | ExtensionStatus>[]> {
         const components: Component<CliStatus | ExtensionStatus>[] = [];
@@ -259,6 +263,232 @@ export class ComponentsManager {
                 } else {
                     window.showErrorMessage(`Permissions cannot be automatically fixed for ${process.platform} environment.`);
                 }
+            }
+        });
+
+        // Detect Lima
+        const limaCliInfo = await this.getCliInfo('limactl --version', ComponentsManager.limaVersionRegExp, true, true);
+        const limaSocketPath = ConfigurationManager.get<string>(Section.limaSocketPath);
+        components.push({
+            name: 'Lima',
+            icon: 'vm',
+            version: limaCliInfo.version,
+            path: limaSocketPath,
+            status: limaCliInfo.status,
+            required: false,
+            information: 'https://github.com/lima-vm/lima',
+            installation: async () => {
+                await env.openExternal(Uri.parse('https://github.com/lima-vm/lima#installation'));
+            },
+            start: async () => {
+                await tasks.executeTask({
+                    name: 'Lima',
+                    detail: 'Start Lima Docker VM',
+                    definition: {
+                        type: 'Start Lima Docker VM'
+                    },
+                    source: 'GitHub Local Actions',
+                    scope: TaskScope.Workspace,
+                    isBackground: true,
+                    presentationOptions: {
+                        reveal: TaskRevealKind.Always,
+                        focus: false,
+                        clear: true,
+                        close: false,
+                        echo: true,
+                        panel: TaskPanelKind.Shared,
+                        showReuseMessage: false
+                    },
+                    problemMatchers: [],
+                    runOptions: {},
+                    group: TaskGroup.Build,
+                    execution: new ShellExecution('limactl start docker')
+                });
+
+                window.withProgress({ location: { viewId: ComponentsTreeDataProvider.VIEW_ID } }, async () => {
+                    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+                    await delay(4000);
+
+                    const newLimaCliInfo = await this.getCliInfo('limactl --version', ComponentsManager.limaVersionRegExp, true, true);
+                    if (limaCliInfo.status !== newLimaCliInfo.status) {
+                        componentsTreeDataProvider.refresh();
+                    } else {
+                        window.showInformationMessage('Once Lima is successfully started, refresh the components view.', 'Refresh').then(async value => {
+                            if (value === 'Refresh') {
+                                componentsTreeDataProvider.refresh();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Detect Colima
+        const colimaCliInfo = await this.getCliInfo('colima version', ComponentsManager.colimaVersionRegExp, true, true);
+        const colimaSocketPath = ConfigurationManager.get<string>(Section.colimaSocketPath);
+        components.push({
+            name: 'Colima',
+            icon: 'vm',
+            version: colimaCliInfo.version,
+            path: colimaSocketPath,
+            status: colimaCliInfo.status,
+            required: false,
+            information: 'https://github.com/abiosoft/colima',
+            installation: async () => {
+                await env.openExternal(Uri.parse('https://github.com/abiosoft/colima#installation'));
+            },
+            start: async () => {
+                await tasks.executeTask({
+                    name: 'Colima',
+                    detail: 'Start Colima Docker VM',
+                    definition: {
+                        type: 'Start Colima Docker VM'
+                    },
+                    source: 'GitHub Local Actions',
+                    scope: TaskScope.Workspace,
+                    isBackground: true,
+                    presentationOptions: {
+                        reveal: TaskRevealKind.Always,
+                        focus: false,
+                        clear: true,
+                        close: false,
+                        echo: true,
+                        panel: TaskPanelKind.Shared,
+                        showReuseMessage: false
+                    },
+                    problemMatchers: [],
+                    runOptions: {},
+                    group: TaskGroup.Build,
+                    execution: new ShellExecution('colima start')
+                });
+
+                window.withProgress({ location: { viewId: ComponentsTreeDataProvider.VIEW_ID } }, async () => {
+                    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+                    await delay(4000);
+
+                    const newColimaCliInfo = await this.getCliInfo('colima version', ComponentsManager.colimaVersionRegExp, true, true);
+                    if (colimaCliInfo.status !== newColimaCliInfo.status) {
+                        componentsTreeDataProvider.refresh();
+                    } else {
+                        window.showInformationMessage('Once Colima is successfully started, refresh the components view.', 'Refresh').then(async value => {
+                            if (value === 'Refresh') {
+                                componentsTreeDataProvider.refresh();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Detect Podman
+        const podmanCliInfo = await this.getCliInfo('podman --version', ComponentsManager.podmanVersionRegExp, true, true);
+        components.push({
+            name: 'Podman',
+            icon: 'box',
+            version: podmanCliInfo.version,
+            status: podmanCliInfo.status,
+            required: false,
+            information: 'https://podman.io',
+            installation: async () => {
+                await env.openExternal(Uri.parse('https://podman.io/getting-started/installation'));
+            },
+            start: async () => {
+                await tasks.executeTask({
+                    name: 'Podman',
+                    detail: 'Start Podman Machine',
+                    definition: {
+                        type: 'Start Podman Machine'
+                    },
+                    source: 'GitHub Local Actions',
+                    scope: TaskScope.Workspace,
+                    isBackground: true,
+                    presentationOptions: {
+                        reveal: TaskRevealKind.Always,
+                        focus: false,
+                        clear: true,
+                        close: false,
+                        echo: true,
+                        panel: TaskPanelKind.Shared,
+                        showReuseMessage: false
+                    },
+                    problemMatchers: [],
+                    runOptions: {},
+                    group: TaskGroup.Build,
+                    execution: new ShellExecution('podman machine start')
+                });
+
+                window.withProgress({ location: { viewId: ComponentsTreeDataProvider.VIEW_ID } }, async () => {
+                    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+                    await delay(4000);
+
+                    const newPodmanCliInfo = await this.getCliInfo('podman --version', ComponentsManager.podmanVersionRegExp, true, true);
+                    if (podmanCliInfo.status !== newPodmanCliInfo.status) {
+                        componentsTreeDataProvider.refresh();
+                    } else {
+                        window.showInformationMessage('Once Podman is successfully started, refresh the components view.', 'Refresh').then(async value => {
+                            if (value === 'Refresh') {
+                                componentsTreeDataProvider.refresh();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Detect Lume
+        const lumeCliInfo = await this.getCliInfo('lume --version', ComponentsManager.lumeVersionRegExp, true, true);
+        const lumeSocketPath = ConfigurationManager.get<string>(Section.lumeSocketPath);
+        components.push({
+            name: 'Lume',
+            icon: 'vm',
+            version: lumeCliInfo.version,
+            path: lumeSocketPath,
+            status: lumeCliInfo.status,
+            required: false,
+            information: 'https://cua.ai/docs/lume',
+            installation: async () => {
+                await env.openExternal(Uri.parse('https://cua.ai/docs/lume/guide/getting-started/installation'));
+            },
+            start: async () => {
+                await tasks.executeTask({
+                    name: 'Lume',
+                    detail: 'Start Lume VM',
+                    definition: {
+                        type: 'Start Lume VM'
+                    },
+                    source: 'GitHub Local Actions',
+                    scope: TaskScope.Workspace,
+                    isBackground: true,
+                    presentationOptions: {
+                        reveal: TaskRevealKind.Always,
+                        focus: false,
+                        clear: true,
+                        close: false,
+                        echo: true,
+                        panel: TaskPanelKind.Shared,
+                        showReuseMessage: false
+                    },
+                    problemMatchers: [],
+                    runOptions: {},
+                    group: TaskGroup.Build,
+                    execution: new ShellExecution('lume serve')
+                });
+
+                window.withProgress({ location: { viewId: ComponentsTreeDataProvider.VIEW_ID } }, async () => {
+                    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+                    await delay(4000);
+
+                    const newLumeCliInfo = await this.getCliInfo('lume --version', ComponentsManager.lumeVersionRegExp, true, true);
+                    if (lumeCliInfo.status !== newLumeCliInfo.status) {
+                        componentsTreeDataProvider.refresh();
+                    } else {
+                        window.showInformationMessage('Once Lume is successfully started, refresh the components view.', 'Refresh').then(async value => {
+                            if (value === 'Refresh') {
+                                componentsTreeDataProvider.refresh();
+                            }
+                        });
+                    }
+                });
             }
         });
 

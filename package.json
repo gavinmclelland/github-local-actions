@@ -843,6 +843,27 @@
           "markdownDescription": "The path to your Docker Desktop executable (used for Windows and MacOS). To start Docker Engine from the `Components` view, this application will be launched. Refer to the default path based on OS:\n\n* **Windows**: `C:/Program Files/Docker/Docker/Docker Desktop.exe`\n\n* **MacOS**: `/Applications/Docker.app`",
           "type": "string",
           "default": ""
+        },
+        "githubLocalActions.containerRuntime": {
+          "markdownDescription": "The container runtime to use for running GitHub Actions locally. Options:\n\n* **docker**: Use Docker Engine (default)\n\n* **podman**: Use Podman\n\n* **lima**: Use Lima (macOS)\n\n* **colima**: Use Colima (macOS)\n\n* **lume**: Use Lume (macOS)",
+          "type": "string",
+          "enum": ["docker", "podman", "lima", "colima", "lume"],
+          "default": "docker"
+        },
+        "githubLocalActions.limaSocketPath": {
+          "markdownDescription": "The path to the Lima Docker socket. This is used when `containerRuntime` is set to `lima`.\n\nDefault: `~/.lima/docker/sock/docker.sock`",
+          "type": "string",
+          "default": ""
+        },
+        "githubLocalActions.colimaSocketPath": {
+          "markdownDescription": "The path to the Colima Docker socket. This is used when `containerRuntime` is set to `colima`.\n\nDefault: `~/.colima/docker.sock`",
+          "type": "string",
+          "default": ""
+        },
+        "githubLocalActions.lumeSocketPath": {
+          "markdownDescription": "The path to the Lume Docker socket. This is used when `containerRuntime` is set to `lume`.\n\nDefault: `~/.lume/docker.sock`",
+          "type": "string",
+          "default": ""
         }
       }
     },

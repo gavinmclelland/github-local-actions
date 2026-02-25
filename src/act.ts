@@ -638,6 +638,15 @@ export class Act {
             ...settings.options.map(option => option.path ? `--${option.name}${option.default && ['true', 'false'].includes(option.default) ? "=" : " "}"${Utils.escapeSpecialCharacters(option.path)}"` : `--${option.name}`)
         ];
 
+        // Add container daemon socket option for Lima/Colima to avoid socket mounting issues
+        // Only add if user hasn't already specified this option in their settings
+        const runtimeSocket = ConfigurationManager.getContainerRuntimeSocket();
+        const hasUserSocketOption = settings.options.some(opt => opt.name === 'container-daemon-socket');
+        if (runtimeSocket && !hasUserSocketOption) {
+            // Use `-` to disable socket mounting, which fixes Lima socket issues
+            userOptions.push(`${Option.ContainerDaemonSocket} -`);
+        }
+
         const actCommand = Act.getActCommand();
         const executionCommand = `${actCommand} ${Option.Json} ${Option.Verbose} ${options.join(' ')} ${userOptions.join(' ')}`;
         const displayCommand = `${actCommand} ${options.join(' ')} ${userOptions.join(' ')}`;
